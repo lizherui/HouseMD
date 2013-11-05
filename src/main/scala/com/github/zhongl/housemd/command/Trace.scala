@@ -118,6 +118,11 @@ class Trace(val inst: Instrumentation, out: PrintOut)
       case c if isInit(c.methodName) => "[Initialize Method]"
       case _                         => getOrForceToNativeString(context.thisObject)
     }
+    private lazy val resultOrExcption = context.resultOrException match {
+      case Some(x)                      => x.toString
+      case None if context.isVoidReturn => "void"
+      case None                         => "null"
+    }
 
     private lazy val avgElapseMillis =
       if (totalTimes == 0) NaN else if (totalElapseMills < totalTimes) "<1" else totalElapseMills / totalTimes
@@ -132,7 +137,7 @@ class Trace(val inst: Instrumentation, out: PrintOut)
                                    (isInit(context.methodName) || this.context.thisObject == context.thisObject)
 
     def reps(maxMethodSignLength: Int, maxClassLoaderLength: Int) =
-      "%1$-" + maxMethodSignLength + "s    %2$-" + maxClassLoaderLength + "s    %3$9s    %4$9sms    %5$s" format(
+      resultOrExcption + "\n%1$-" + maxMethodSignLength + "s    %2$-" + maxClassLoaderLength + "s    %3$9s    %4$9sms    %5$s" format(
         methodSign,
         loader,
         totalTimes,
